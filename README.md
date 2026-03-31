@@ -108,13 +108,3 @@ View live logs:
 ```bash
 tail -f gym_booking.log
 ```
-
-## Security and Compliance
-
-- Store secrets only in `.env`.
-- Never commit credentials, tokens, or session artifacts.
-- Keep `.gitignore` aligned with all local sensitive files.
-
-## Usage Scope
-
-Intended for personal, non-commercial use.
