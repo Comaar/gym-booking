@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+.venv/
+
+# Secrets
+.env
+.env.*
+!.env.example
+session_cookies.json
+
+# Logs
+*.log
+
+# MacOS
+.DS_Store
+._*
+
+# Editors
+.vscode/
+
+# Archives
+*.tar.gzy

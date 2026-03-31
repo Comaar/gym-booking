@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.marco.gymbooking</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/Marco/miniconda3/envs/n8n_env/bin/python</string>
+        <string>/Users/Marco/Documents/GitHub_Projects/n8n_booking/run_booking.py</string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>0</integer>
+        <key>Minute</key>
+        <integer>1</integer>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/Users/Marco/Documents/GitHub_Projects/n8n_booking/gym_booking.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/Marco/Documents/GitHub_Projects/n8n_booking/gym_booking.log</string>
+    <key>WorkingDirectory</key>
+    <string>/Users/Marco/Documents/GitHub_Projects/n8n_booking</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Developer/CommandLineTools/usr/bin</string>
+    </dict>
+    <key>RunAtLoad</key>
+    <false/>
+    <key>SuccessfulExit</key>
+    <true/>
+    <key>AbandonProcessGroup</key>
+    <true/>
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+</dict>
+</plist>

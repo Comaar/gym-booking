@@ -1,0 +1,258 @@
+================================================================================
+  RASPBERRY PI ZERO 2W SETUP GUIDE - Gym Booking Automation
+================================================================================
+
+📦 WHAT YOU NEED TO BUY:
+========================
+1. Raspberry Pi Zero 2W (~$15)
+2. MicroSD card - 16GB minimum, 32GB recommended (~$8)
+3. USB power adapter - 5V, 2.5A recommended (~$8)
+4. MicroUSB cable (if adapter doesn't include one)
+5. Optional: Case (~$5) for protection
+
+Total cost: ~$30-40
+
+
+================================================================================
+SETUP STEPS (FIRST TIME)
+================================================================================
+
+1️⃣ PREPARE THE SD CARD (ON YOUR MAC)
+======================================
+
+A. Download Raspberry Pi Imager:
+   - Visit: https://www.raspberrypi.com/software/
+   - Or use Homebrew: brew install --cask raspberry-pi-imager
+
+B. Flash the OS:
+   1. Open Raspberry Pi Imager
+   2. Choose OS: "Raspberry Pi OS Lite (64-bit)" - NO desktop needed
+   3. Choose Storage: Your microSD card
+   4. Click gear icon ⚙️ for advanced options:
+      - Set hostname: raspberrypi
+      - Enable SSH ✓
+      - Set username: pi
+      - Set password: [choose a password]
+      - Configure WiFi: [your network name and password]
+      - Set locale: Europe/Rome, Europe/Rome timezone
+   5. Click Write!
+   6. Wait for completion (5-10 minutes)
+
+
+2️⃣ BOOT THE PI
+===============
+
+1. Insert SD card into Pi Zero 2W
+2. Connect power
+3. Wait ~60 seconds for first boot
+
+4. Find Pi on your network:
+   ping raspberrypi.local
+
+   Or check your router's connected devices for IP
+
+   Or use:
+   arp -a | grep -i "b8:27:eb\|dc:a6:32\|e4:5f:01"
+
+
+3️⃣ CONNECT VIA SSH (FROM YOUR MAC)
+===================================
+
+# Connect
+ssh pi@raspberrypi.local
+
+# Enter password you set earlier
+
+# First login: update the system
+sudo apt update && sudo apt upgrade -y
+
+# This takes 5-10 minutes, be patient
+
+
+4️⃣ TRANSFER YOUR PROJECT
+=========================
+
+# On your Mac (open a NEW terminal window, don't close SSH):
+cd /Users/Marco/Documents/GitHub_Projects/n8n_booking
+
+# Create a tarball (excludes logs and cache)
+tar czf gym-booking.tar.gz \
+  app.py run_booking.py .env requirements.txt \
+  session_cookies.json 2>/dev/null || \
+  tar czf gym-booking.tar.gz app.py run_booking.py .env requirements.txt
+
+# Transfer to Pi
+scp gym-booking.tar.gz pi@raspberrypi.local:~/
+
+# You'll be asked for the password
+
+
+5️⃣ SETUP PYTHON ENVIRONMENT (ON THE PI - IN SSH)
+=================================================
+
+# Extract files
+cd ~
+mkdir gym-booking
+tar xzf gym-booking.tar.gz -C gym-booking/
+cd gym-booking
+
+# Install Python and pip
+sudo apt install -y python3-pip python3-venv
+
+# Create virtual environment
+python3 -m venv venv
+
+# Activate it
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# This takes 2-3 minutes
+
+
+6️⃣ TEST THE SCRIPT
+===================
+
+# Still on Pi, still in ~/gym-booking with venv activated
+python3 run_booking.py
+
+# Check output - should see:
+# "🚀 SCRIPT STARTED"
+# "✅ Booking successful" or "⏭️ Skipped" (depending on day)
+
+# Check the log
+cat gym_booking.log
+
+
+7️⃣ SETUP AUTOMATIC DAILY EXECUTION
+===================================
+
+# Edit crontab
+crontab -e
+
+# If asked, choose nano (option 1)
+
+# Add this line at the bottom:
+1 0 * * * cd /home/pi/gym-booking && /home/pi/gym-booking/venv/bin/python3 run_booking.py >> /home/pi/gym-booking/gym_booking.log 2>&1
+
+# Save and exit:
+# Press: Ctrl+O (save)
+# Press: Enter (confirm)
+# Press: Ctrl+X (exit)
+
+# Verify it's scheduled
+crontab -l
+
+
+8️⃣ DONE! ✅
+============
+
+Your Pi will now:
+- Run booking at 00:01 every night
+- Book classes 7 days in advance
+- Log everything to gym_booking.log
+
+Check it's working tomorrow:
+ssh pi@raspberrypi.local "tail -20 ~/gym-booking/gym_booking.log"
+
+
+================================================================================
+USEFUL COMMANDS (AFTER SETUP)
+================================================================================
+
+# Check recent logs from your Mac
+ssh pi@raspberrypi.local "tail -50 ~/gym-booking/gym_booking.log"
+
+# Check if booking ran today
+ssh comar@192.168.1.194 "grep '$(date +%Y-%m-%d)' ~/gym-booking/gym_booking.log"
+
+# Run booking manually (test)
+ssh pi@raspberrypi.local "cd ~/gym-booking && ./venv/bin/python3 run_booking.py"
+
+# Restart the Pi
+ssh pi@raspberrypi.local "sudo reboot"
+
+# Check Pi status
+ssh comar@192.168.1.194 "uptime"
+
+# Check disk space
+ssh pi@raspberrypi.local "df -h"
+
+# Check memory usage
+ssh pi@raspberrypi.local "free -h"
+
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+PROBLEM: Can't find Pi on network
+SOLUTION: 
+- Connect Pi to monitor/TV with micro HDMI adapter
+- Or check your router's admin page for connected devices
+- Make sure WiFi credentials were entered correctly in Imager
+
+---
+
+PROBLEM: SSH not working
+SOLUTION:
+- Make sure you enabled SSH in Raspberry Pi Imager settings
+- Try using IP address instead of raspberrypi.local
+- Check if Pi is connected to WiFi (look at router)
+
+---
+
+PROBLEM: Script fails with "Module not found"
+SOLUTION:
+- Make sure you activated venv before installing:
+  source ~/gym-booking/venv/bin/activate
+  pip install -r requirements.txt
+
+---
+
+PROBLEM: Want to update the script later
+SOLUTION:
+# On Mac: edit files as needed
+# Transfer updated file:
+scp app.py pi@raspberrypi.local:~/gym-booking/
+# Or transfer all:
+scp run_booking.py app.py pi@raspberrypi.local:~/gym-booking/
+
+---
+
+PROBLEM: Cron not running
+SOLUTION:
+# Check cron status
+ssh pi@raspberrypi.local "systemctl status cron"
+# Check system time is correct
+ssh pi@raspberrypi.local "date"
+# View cron logs
+ssh pi@raspberrypi.local "grep CRON /var/log/syslog | tail -20"
+
+
+================================================================================
+POWER TIPS
+================================================================================
+
+✓ Pi consumes ~2-3W - can run 24/7 for ~$2-3/year in electricity
+✓ No monitor needed after initial setup
+✓ Runs headless - just plug power and forget
+✓ SD card lasts years with minimal writes (just logs)
+✓ Can run multiple Python scripts simultaneously
+✓ Access from anywhere on your network via SSH
+✓ Set static IP on your router for easier access
+
+
+================================================================================
+ESTIMATED TIME
+================================================================================
+
+First-time setup:      30-45 minutes
+Future updates:        2-3 minutes
+Daily maintenance:     0 minutes (fully automatic)
+
+
+================================================================================
+                           ENJOY YOUR AUTOMATION! 🎉
+================================================================================
